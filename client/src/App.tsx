@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./store";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Dashboard } from "./pages/Dashboard";
+import { ProfDashboard } from "./pages/ProfDashboard";
 import { I18nProvider, useI18n } from "./i18n";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
 import { RoleLanding } from "./pages/RoleLanding";
@@ -11,7 +12,7 @@ function AppInner() {
   const { user, loading } = useAuth();
   const { t } = useI18n();
   const [authPage, setAuthPage] = useState<"login" | "register">("login");
-  const [entryRole, setEntryRole] = useState<"unset" | "client">("unset");
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -35,15 +36,19 @@ function AppInner() {
   }
 
   if (!user) {
-    if (entryRole === "unset") {
-      return <RoleLanding onChooseClient={() => setEntryRole("client")} />;
+    if (!selectedRole) {
+      return <RoleLanding onChoose={(dbRole) => setSelectedRole(dbRole)} />;
     }
+    const goBackToRoles = () => { setSelectedRole(null); setAuthPage("login"); };
     if (authPage === "register") {
-      return <Register goLogin={() => setAuthPage("login")} />;
+      return <Register goLogin={() => setAuthPage("login")} role={selectedRole} goBack={goBackToRoles} />;
     }
-    return <Login goRegister={() => setAuthPage("register")} />;
+    return <Login goRegister={() => setAuthPage("register")} goBack={goBackToRoles} role={selectedRole} />;
   }
 
+  if (user.role !== "cliente") {
+    return <ProfDashboard />;
+  }
   return <Dashboard />;
 }
 

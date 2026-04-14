@@ -1,52 +1,15 @@
-import { useState } from "react";
-import { Card } from "../components/ui";
 import { useI18n, type TKey } from "../i18n";
+import { ROLE_INFO } from "../data/constants";
 
-type RoleId = "client" | "doctor" | "nutritionist" | "blacksmith" | "iron_coach";
+const ROLES = Object.entries(ROLE_INFO).map(([dbRole, { icon, titleKey }]) => ({
+  dbRole,
+  icon,
+  titleKey: titleKey as TKey,
+  descKey: `${titleKey}_desc` as TKey,
+}));
 
-const ROLES: Array<{ id: RoleId; icon: string; titleKey: TKey; descKey: TKey }> = [
-  { id: "client", icon: "🧑‍🦱", titleKey: "role_client", descKey: "role_client_desc" },
-  { id: "doctor", icon: "🩺", titleKey: "role_doctor", descKey: "role_doctor_desc" },
-  { id: "nutritionist", icon: "🥗", titleKey: "role_nutritionist", descKey: "role_nutritionist_desc" },
-  { id: "blacksmith", icon: "🛠️", titleKey: "role_blacksmith", descKey: "role_blacksmith_desc" },
-  { id: "iron_coach", icon: "🏋️", titleKey: "role_iron_coach", descKey: "role_iron_coach_desc" },
-];
-
-export function RoleLanding({ onChooseClient }: { onChooseClient: () => void }) {
+export function RoleLanding({ onChoose }: { onChoose: (dbRole: string) => void }) {
   const { t } = useI18n();
-  const [lockedRole, setLockedRole] = useState<RoleId | null>(null);
-
-  const onChoose = (role: RoleId) => {
-    if (role === "client") {
-      onChooseClient();
-      return;
-    }
-    setLockedRole(role);
-  };
-
-  if (lockedRole) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6">
-        <Card className="w-full max-w-[420px] p-6 text-center">
-          <div className="text-4xl mb-3">🚧</div>
-          <h2 className="font-bebas text-2xl tracking-[.08em] mb-2">{t("landing_only_client_title")}</h2>
-          <p className="text-muted text-sm mb-5">{t("landing_only_client_body")}</p>
-          <button
-            onClick={onChooseClient}
-            className="w-full rounded-[9px] px-[18px] py-[9px] font-bebas tracking-[.1em] text-[13px] bg-linear-to-br from-accent to-red-500 text-white border-none cursor-pointer mb-2"
-          >
-            {t("landing_try_client")}
-          </button>
-          <button
-            onClick={() => setLockedRole(null)}
-            className="w-full rounded-[9px] px-[18px] py-[9px] font-bebas tracking-[.1em] text-[13px] bg-transparent text-text border border-border cursor-pointer"
-          >
-            {t("landing_back_roles")}
-          </button>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
@@ -65,8 +28,8 @@ export function RoleLanding({ onChooseClient }: { onChooseClient: () => void }) 
       <div className="w-full max-w-[460px] flex flex-col gap-2">
         {ROLES.map((role) => (
           <button
-            key={role.id}
-            onClick={() => onChoose(role.id)}
+            key={role.dbRole}
+            onClick={() => onChoose(role.dbRole)}
             className="w-full text-left bg-card border border-border hover:border-accent/30 rounded-xl px-4 py-3 transition-colors cursor-pointer"
           >
             <div className="flex items-center gap-3">

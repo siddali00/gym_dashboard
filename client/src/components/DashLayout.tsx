@@ -53,7 +53,7 @@ export function DashLayout({
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[13px] font-medium truncate">{user.name}</div>
-              <div className="text-[9px] bg-blue/[.1] text-blue px-1.5 py-px rounded-full inline-block mt-0.5">{t("client")}</div>
+              <div className="text-[9px] bg-blue/[.1] text-blue px-1.5 py-px rounded-full inline-block mt-0.5 capitalize">{user.role?.replace("_", " ") || "cliente"}</div>
             </div>
           </div>
           <button

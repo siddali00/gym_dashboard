@@ -6,8 +6,8 @@ import { FoodDiary } from "./FoodDiary";
 import { MedicalReports } from "./MedicalReports";
 import { Appointments } from "./Appointments";
 import { Biomarkers, NutritionPlan, Workouts, Supplements } from "./Placeholders";
+import { MySpecialists } from "./MySpecialists";
 import { Privacy } from "./Privacy";
-import { Profile } from "./Profile";
 import { useI18n } from "../i18n";
 
 const PAGES: Record<string, React.FC<{ setPage: (p: string) => void }>> = {
@@ -20,7 +20,7 @@ const PAGES: Record<string, React.FC<{ setPage: (p: string) => void }>> = {
   supplements: Supplements as any,
   referti: MedicalReports as any,
   appointments: Appointments as any,
-  profile: Profile as any,
+  specialists: MySpecialists as any,
   privacy: Privacy as any,
 };
 
@@ -38,7 +38,7 @@ export function Dashboard() {
     { id: "supplements", icon: "💊", label: t("nav_supplements") },
     { id: "referti", icon: "📋", label: t("nav_reports") },
     { id: "appointments", icon: "📅", label: t("nav_appointments") },
-    { id: "profile", icon: "👤", label: t("nav_profile") },
+    { id: "specialists", icon: "👥", label: t("nav_specialists") },
     { id: "privacy", icon: "🔒", label: t("nav_privacy") },
   ];
 

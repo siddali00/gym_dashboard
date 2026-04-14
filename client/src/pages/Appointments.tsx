@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { PageHead, Card, CardHead, FG, Inp, Sel, Txta, Btn, OkMsg, Badge, Empty } from "../components/ui";
+import { PageHead, Card, CardHead, FG, Inp, Sel, Txta, Btn, OkMsg, Badge, Empty, InfoBox } from "../components/ui";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { ClientSelector } from "../components/ClientSelector";
 import { api } from "../api";
 import { useI18n } from "../i18n";
 
@@ -13,17 +15,26 @@ function normalizeDateInput(s: unknown): string {
 
 function normalizeTimeInput(s: unknown): string {
   if (s == null || typeof s !== "string") return "09:00";
-  const t = s.trim();
-  const m = t.match(/^(\d{1,2}):(\d{2})(?::\d{2})?/);
+  const tv = s.trim();
+  const m = tv.match(/^(\d{1,2}):(\d{2})(?::\d{2})?/);
   if (m) return `${m[1].padStart(2, "0")}:${m[2]}`;
   return "09:00";
 }
 
-export function Appointments() {
+interface AppointmentsProps {
+  clients?: any[];
+  selected?: number | null;
+  onSelect?: (id: number | null) => void;
+}
+
+export function Appointments({ clients, selected, onSelect }: AppointmentsProps = {}) {
   const { t } = useI18n();
+  const isPro = !!(clients && onSelect);
   const formCardRef = useRef<HTMLDivElement>(null);
   const [appts, setAppts] = useState<any[]>([]);
   const [ok, setOk] = useState("");
+  const [err, setErr] = useState("");
+  const [confirmId, setConfirmId] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState({
     title: "",
@@ -43,15 +54,7 @@ export function Appointments() {
     status: "confermato" as string,
   });
 
-  function startEdit(a: {
-    id: number;
-    title: string;
-    date: string;
-    time: string;
-    location?: string | null;
-    notes?: string | null;
-    status: string;
-  }) {
+  function startEdit(a: any) {
     const id = Number(a.id);
     if (!Number.isFinite(id)) return;
     setEditingId(id);
@@ -86,25 +89,75 @@ export function Appointments() {
 
   async function save() {
     if (!form.title || !form.date || !form.time) return;
-    if (editingId != null) {
-      const updated = await api.updateAppointment(editingId, form);
-      setAppts((list) => list.map((x) => (x.id === editingId ? updated : x)));
-      cancelEdit();
-      setOk(t("ap_updated_ok"));
-    } else {
-      const appt = await api.addAppointment(form);
-      setAppts((a) => [appt, ...a]);
-      setForm(emptyForm());
-      setOk(t("ap_created_ok"));
+    if (editingId == null && !selected) {
+      setErr(t("ap_select_client_first"));
+      return;
     }
-    setTimeout(() => setOk(""), 3000);
+    setErr("");
+    try {
+      if (editingId != null) {
+        const updated = await api.updateAppointment(editingId, form);
+        setAppts((list) => list.map((x) => (x.id === editingId ? updated : x)));
+        cancelEdit();
+        setOk(t("ap_updated_ok"));
+      } else {
+        const payload: any = { ...form, clientId: selected };
+        const appt = await api.addAppointment(payload);
+        setAppts((a) => [appt, ...a]);
+        setForm(emptyForm());
+        setOk(t("ap_created_ok"));
+      }
+      setTimeout(() => setOk(""), 3000);
+    } catch (e: any) {
+      const msg = e?.message || "";
+      if (msg.includes("CONFLICT_PRO")) setErr(t("ap_conflict_pro"));
+      else if (msg.includes("CONFLICT_CLIENT")) setErr(t("ap_conflict_client"));
+      else setErr(msg || "Error");
+    }
   }
 
   async function remove(id: number) {
     await api.deleteAppointment(id);
     setAppts((a) => a.filter((x) => x.id !== id));
+    setConfirmId(null);
   }
 
+  /* ---------- Athlete: read-only view ---------- */
+  if (!isPro) {
+    return (
+      <>
+        <PageHead title={t("ap_title")} accent={t("ap_accent")} sub={t("ap_sub_athlete")} />
+        <InfoBox icon="🔒" title={t("ro_title")} body={t("ro_body_suffix")} />
+        <Card>
+          <CardHead><span className="font-bebas text-sm">{t("ap_list_head")} ({appts.length})</span></CardHead>
+          <div className="px-4 max-h-[600px] overflow-y-auto">
+            {appts.length === 0 ? (
+              <Empty icon="📅" msg={t("ap_empty_msg")} sub={t("ap_empty_sub")} />
+            ) : (
+              appts.map((a) => (
+                <div key={a.id} className="flex items-center gap-2.5 py-[11px] border-b border-border min-w-0">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-medium">{a.title}</div>
+                    {a.location && <div className="text-[11px] text-muted truncate">{a.location}</div>}
+                    {a.createdBy && (
+                      <div className="text-[10px] text-accent/70">{t("ap_scheduled_by", { name: a.createdBy })}</div>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-xs font-semibold">{a.date}</div>
+                    <div className="text-[11px] text-muted">{a.time}</div>
+                  </div>
+                  <Badge color={a.status === "confermato" ? "ok" : "warn"}>{statusLabel(a.status)}</Badge>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+      </>
+    );
+  }
+
+  /* ---------- Professional: full CRUD ---------- */
   return (
     <>
       <PageHead title={t("ap_title")} accent={t("ap_accent")} sub={t("ap_sub")} />
@@ -115,6 +168,7 @@ export function Appointments() {
             <span className="font-bebas text-sm">{editingId != null ? t("ap_edit_head") : t("ap_new_head")}</span>
           </CardHead>
           <div className="p-[18px]">
+            <ClientSelector clients={clients!} selected={selected!} onSelect={onSelect!} />
             <FG label={t("ap_label_title")}>
               <Inp value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder={t("ap_ph_title")} />
             </FG>
@@ -139,6 +193,7 @@ export function Appointments() {
             <FG label={t("ap_label_notes")}>
               <Txta value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows={2} placeholder={t("ap_notes_ph")} />
             </FG>
+            {err && <p className="text-accent text-xs mb-2">{err}</p>}
             <OkMsg msg={ok} />
             <div className="flex gap-2">
               {editingId != null && (
@@ -164,11 +219,14 @@ export function Appointments() {
                   key={a.id}
                   className={`flex items-center gap-2.5 py-[11px] border-b border-border min-w-0 ${editingId === Number(a.id) ? "bg-accent/[.06] -mx-2 px-2 rounded-lg" : ""}`}
                 >
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="text-[13px] font-medium">{a.title}</div>
-                    {a.location && <div className="text-[11px] text-muted">{a.location}</div>}
+                    {a.location && <div className="text-[11px] text-muted truncate">{a.location}</div>}
+                    {a.user && (
+                      <div className="text-[10px] text-accent/70">{t("ap_for_client", { name: a.user.name })}</div>
+                    )}
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <div className="text-xs font-semibold">{a.date}</div>
                     <div className="text-[11px] text-muted">{a.time}</div>
                   </div>
@@ -190,7 +248,7 @@ export function Appointments() {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        remove(a.id);
+                        setConfirmId(a.id);
                       }}
                       className="bg-transparent border-none text-muted cursor-pointer text-lg hover:text-accent px-1"
                     >
@@ -203,6 +261,12 @@ export function Appointments() {
           </div>
         </Card>
       </div>
+
+      <ConfirmDialog
+        open={confirmId !== null}
+        onConfirm={() => confirmId !== null && remove(confirmId)}
+        onCancel={() => setConfirmId(null)}
+      />
     </>
   );
 }

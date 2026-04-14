@@ -13,8 +13,8 @@ model User {
   password  String
   name      String
   phone     String?
-  cf        String?  // Codice Fiscale (optional, like prototype)
-  role      String   @default("cliente") // cliente only for MVP
+  cf        String?
+  role      String   @default("cliente")
   createdAt DateTime @default(now())
 
   consents       Consent[]
@@ -23,6 +23,17 @@ model User {
   medicalReports MedicalReport[]
   appointments   Appointment[]
   customFoods    CustomFood[]
+
+  biomarkersReceived    Biomarker[]      @relation("BiomarkerClient")
+  biomarkersAdded       Biomarker[]      @relation("BiomarkerPro")
+  nutritionReceived     NutritionPlan[]  @relation("NutritionClient")
+  nutritionAdded        NutritionPlan[]  @relation("NutritionPro")
+  workoutsReceived      Workout[]        @relation("WorkoutClient")
+  workoutsAdded         Workout[]        @relation("WorkoutPro")
+  supplementsReceived   Supplement[]     @relation("SupplementClient")
+  supplementsAdded      Supplement[]     @relation("SupplementPro")
+  profLinksAsPro        ProfLink[]       @relation("ProfLinkPro")
+  profLinksAsClient     ProfLink[]       @relation("ProfLinkClient")
 }
 
 model Consent {
@@ -37,14 +48,15 @@ model Consent {
 }
 
 model SelfMetric {
-  id       Int      @id @default(autoincrement())
-  userId   Int
-  category String   // corpo, misure, cardio, metabolica, sonno, attivita
-  date     String
-  values   Json     // [{key, value, unit}]
-  bmi      Float?
-  addedAt  DateTime @default(now())
-  user     User     @relation(fields: [userId], references: [id])
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  category  String
+  date      String
+  values    Json
+  bmi       Float?
+  addedById Int?
+  addedAt   DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model FoodDay {
@@ -71,29 +83,108 @@ model CustomFood {
 }
 
 model MedicalReport {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  title      String
-  type       String
-  doctor     String?
-  date       String
-  notes      String?
-  fileName   String?
-  filePath   String?
-  uploadedBy String   @default("cliente")
-  addedAt    DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id])
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  title           String
+  type            String
+  doctor          String?
+  date            String
+  notes           String?
+  diagnosis       String?
+  findings        String?
+  recommendations String?
+  fileName        String?
+  filePath        String?
+  uploadedBy      String   @default("cliente")
+  uploadedById    Int?
+  addedAt         DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id])
 }
 
 model Appointment {
-  id       Int      @id @default(autoincrement())
-  userId   Int
-  title    String
-  date     String
-  time     String
-  location String?
-  notes    String?
-  status   String   @default("confermato")
-  addedAt  DateTime @default(now())
-  user     User     @relation(fields: [userId], references: [id])
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  title       String
+  date        String
+  time        String
+  location    String?
+  notes       String?
+  status      String   @default("confermato")
+  createdBy   String?
+  createdById Int?
+  addedAt     DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Biomarker {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  addedById  Int
+  name       String
+  category   String?
+  value      String
+  unit       String?
+  refMin     String?
+  refMax     String?
+  status     String   @default("normale")
+  date       String
+  notes      String?
+  addedAt    DateTime @default(now())
+  user       User     @relation("BiomarkerClient", fields: [userId], references: [id])
+  addedBy    User     @relation("BiomarkerPro", fields: [addedById], references: [id])
+}
+
+model NutritionPlan {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  addedById  Int
+  title      String
+  calories   String?
+  protein    String?
+  carbs      String?
+  fat        String?
+  fiber      String?
+  notes      String?
+  addedAt    DateTime @default(now())
+  user       User     @relation("NutritionClient", fields: [userId], references: [id])
+  addedBy    User     @relation("NutritionPro", fields: [addedById], references: [id])
+}
+
+model Workout {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  addedById  Int
+  name       String
+  type       String   @default("Body Building")
+  level      String   @default("Intermedio")
+  weeks      String   @default("4")
+  notes      String?
+  addedAt    DateTime @default(now())
+  user       User     @relation("WorkoutClient", fields: [userId], references: [id])
+  addedBy    User     @relation("WorkoutPro", fields: [addedById], references: [id])
+}
+
+model Supplement {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  addedById  Int
+  name       String
+  category   String?
+  dosage     String?
+  frequency  String?
+  notes      String?
+  addedAt    DateTime @default(now())
+  user       User     @relation("SupplementClient", fields: [userId], references: [id])
+  addedBy    User     @relation("SupplementPro", fields: [addedById], references: [id])
+}
+
+model ProfLink {
+  id        Int      @id @default(autoincrement())
+  profId    Int
+  clientId  Int
+  addedAt   DateTime @default(now())
+  prof      User     @relation("ProfLinkPro", fields: [profId], references: [id])
+  client    User     @relation("ProfLinkClient", fields: [clientId], references: [id])
+
+  @@unique([profId, clientId])
 }

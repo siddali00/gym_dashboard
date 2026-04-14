@@ -8,6 +8,11 @@ import foodRoutes from "./routes/food";
 import reportsRoutes from "./routes/reports";
 import appointmentsRoutes from "./routes/appointments";
 import profileRoutes from "./routes/profile";
+import biomarkersRoutes from "./routes/biomarkers";
+import nutritionRoutes from "./routes/nutrition";
+import workoutsRoutes from "./routes/workouts";
+import supplementsRoutes from "./routes/supplements";
+import linksRoutes from "./routes/links";
 
 export const prisma = new PrismaClient();
 
@@ -23,6 +28,11 @@ app.use("/api/food", foodRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/appointments", appointmentsRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/biomarkers", biomarkersRoutes);
+app.use("/api/nutrition", nutritionRoutes);
+app.use("/api/workouts", workoutsRoutes);
+app.use("/api/supplements", supplementsRoutes);
+app.use("/api/links", linksRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

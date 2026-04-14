@@ -5,6 +5,11 @@ import { authMiddleware, AuthRequest } from "../middleware/auth";
 const router = Router();
 router.use(authMiddleware);
 
+router.get("/days-count", async (req: AuthRequest, res: Response) => {
+  const count = await prisma.foodDay.count({ where: { userId: req.userId! } });
+  return res.json({ count });
+});
+
 router.get("/day/:date", async (req: AuthRequest, res: Response) => {
   const date = req.params.date as string;
   const day = await prisma.foodDay.findUnique({
