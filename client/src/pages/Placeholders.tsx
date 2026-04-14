@@ -7,12 +7,24 @@ function AddedByFooter({ item }: { item: any }) {
   const { t } = useI18n();
   const name = item.addedBy?.name || "—";
   return (
-    <div className="text-[10px] text-muted mt-1">
+    <div className="text-[10px] text-muted mt-1.5 flex items-center gap-1">
+      <span className="inline-block w-3 h-3 rounded-full bg-accent/15 text-center text-[8px] leading-[12px]">👤</span>
       {t("added_by", { name })} · {new Date(item.addedAt).toLocaleDateString("it-IT")}
     </div>
   );
 }
 
+function Detail({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-[10px] text-muted uppercase tracking-wider">{label}</span>
+      <span className="text-[12px] font-medium">{value}</span>
+    </div>
+  );
+}
+
+/* ─── BIOMARKERS ─── */
 export function Biomarkers() {
   const { t } = useI18n();
   const [items, setItems] = useState<any[]>([]);
@@ -31,19 +43,31 @@ export function Biomarkers() {
             <Empty icon="🔬" msg={t("bm_empty_msg")} sub={t("bm_empty_sub")} />
           ) : (
             items.map((bm) => (
-              <div key={bm.id} className="py-[11px] border-b border-border">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex-1">
-                    <div className="text-[13px] font-medium">{bm.name}</div>
+              <div key={bm.id} className="py-3 border-b border-border last:border-b-0">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center text-lg shrink-0 mt-0.5">🔬</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[14px] font-semibold">{bm.name}</span>
+                      <Badge color={bm.status === "normale" ? "ok" : "warn"}>{bm.status}</Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mb-1">
+                      <div className="text-[13px]">
+                        <span className="font-mono font-semibold text-accent">{bm.value}</span>
+                        {bm.unit && <span className="text-[11px] text-muted ml-0.5">{bm.unit}</span>}
+                      </div>
+                      {(bm.refMin || bm.refMax) && (
+                        <div className="text-[11px] text-muted">
+                          Ref: {bm.refMin || "—"} – {bm.refMax || "—"} {bm.unit || ""}
+                        </div>
+                      )}
+                    </div>
                     {bm.category && <div className="text-[11px] text-muted">{bm.category}</div>}
+                    {bm.date && <div className="text-[11px] text-muted">📅 {bm.date}</div>}
+                    {bm.notes && <div className="text-[11px] text-muted/70 italic mt-1">{bm.notes}</div>}
+                    <AddedByFooter item={bm} />
                   </div>
-                  <div className="font-mono text-sm font-semibold">
-                    {bm.value}
-                    {bm.unit && <span className="text-[10px] text-muted ml-1">{bm.unit}</span>}
-                  </div>
-                  <Badge color={bm.status === "normale" ? "ok" : "warn"}>{bm.status}</Badge>
                 </div>
-                <AddedByFooter item={bm} />
               </div>
             ))
           )}
@@ -53,6 +77,7 @@ export function Biomarkers() {
   );
 }
 
+/* ─── NUTRITION PLANS ─── */
 export function NutritionPlan() {
   const { t } = useI18n();
   const [items, setItems] = useState<any[]>([]);
@@ -71,15 +96,42 @@ export function NutritionPlan() {
             <Empty icon="🥗" msg={t("nu_empty_msg")} sub={t("nu_empty_sub")} />
           ) : (
             items.map((n) => (
-              <div key={n.id} className="py-[11px] border-b border-border">
-                <div className="text-[13px] font-medium mb-1">{n.title}</div>
-                <div className="flex gap-2.5 text-xs text-muted">
-                  {n.calories && <span>🔥 {n.calories}kcal</span>}
-                  {n.protein && <span>P {n.protein}g</span>}
-                  {n.carbs && <span>C {n.carbs}g</span>}
-                  {n.fat && <span>G {n.fat}g</span>}
+              <div key={n.id} className="py-3 border-b border-border last:border-b-0">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-green-500/10 flex items-center justify-center text-lg shrink-0 mt-0.5">🥗</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[14px] font-semibold mb-1.5">{n.title}</div>
+                    <div className="flex flex-wrap gap-2 mb-1.5">
+                      {n.calories && (
+                        <span className="px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-400 text-[11px] font-medium">
+                          🔥 {n.calories} kcal
+                        </span>
+                      )}
+                      {n.protein && (
+                        <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[11px] font-medium">
+                          P {n.protein}g
+                        </span>
+                      )}
+                      {n.carbs && (
+                        <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 text-[11px] font-medium">
+                          C {n.carbs}g
+                        </span>
+                      )}
+                      {n.fat && (
+                        <span className="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 text-[11px] font-medium">
+                          G {n.fat}g
+                        </span>
+                      )}
+                      {n.fiber && (
+                        <span className="px-2 py-0.5 rounded-md bg-green-500/10 text-green-400 text-[11px] font-medium">
+                          F {n.fiber}g
+                        </span>
+                      )}
+                    </div>
+                    {n.notes && <div className="text-[11px] text-muted/70 italic mt-1">{n.notes}</div>}
+                    <AddedByFooter item={n} />
+                  </div>
                 </div>
-                <AddedByFooter item={n} />
               </div>
             ))
           )}
@@ -89,6 +141,7 @@ export function NutritionPlan() {
   );
 }
 
+/* ─── WORKOUTS ─── */
 export function Workouts() {
   const { t } = useI18n();
   const [items, setItems] = useState<any[]>([]);
@@ -107,12 +160,32 @@ export function Workouts() {
             <Empty icon="🏋️" msg={t("wo_empty_msg")} sub={t("wo_empty_sub")} />
           ) : (
             items.map((w) => (
-              <div key={w.id} className="py-[11px] border-b border-border">
-                <div className="text-[13px] font-medium mb-1">{w.name}</div>
-                <div className="text-[11px] text-muted">
-                  {w.type} · {w.level} · {w.weeks} {t("wo_weeks_suffix")}
+              <div key={w.id} className="py-3 border-b border-border last:border-b-0">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center text-lg shrink-0 mt-0.5">🏋️</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[14px] font-semibold mb-1.5">{w.name}</div>
+                    <div className="flex flex-wrap gap-2 mb-1.5">
+                      {w.type && (
+                        <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[11px] font-medium">
+                          {w.type}
+                        </span>
+                      )}
+                      {w.level && (
+                        <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 text-[11px] font-medium">
+                          {w.level}
+                        </span>
+                      )}
+                      {w.weeks && (
+                        <span className="px-2 py-0.5 rounded-md bg-green-500/10 text-green-400 text-[11px] font-medium">
+                          📅 {w.weeks} {t("wo_weeks_suffix")}
+                        </span>
+                      )}
+                    </div>
+                    {w.notes && <div className="text-[11px] text-muted/70 italic mt-1">{w.notes}</div>}
+                    <AddedByFooter item={w} />
+                  </div>
                 </div>
-                <AddedByFooter item={w} />
               </div>
             ))
           )}
@@ -122,6 +195,7 @@ export function Workouts() {
   );
 }
 
+/* ─── SUPPLEMENTS ─── */
 export function Supplements() {
   const { t } = useI18n();
   const [items, setItems] = useState<any[]>([]);
@@ -140,14 +214,35 @@ export function Supplements() {
             <Empty icon="💊" msg={t("su_empty_msg")} sub={t("su_empty_sub")} />
           ) : (
             items.map((s) => (
-              <div key={s.id} className="py-[11px] border-b border-border flex items-center gap-2.5">
-                <div className="flex-1">
-                  <div className="text-[13px] font-medium">{s.name}</div>
-                  {s.category && <div className="text-[11px] text-muted">{s.category}</div>}
+              <div key={s.id} className="py-3 border-b border-border last:border-b-0">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-purple-500/10 flex items-center justify-center text-lg shrink-0 mt-0.5">💊</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[14px] font-semibold">{s.name}</span>
+                      <Badge color="ok">{t("su_active")}</Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mb-1.5">
+                      {s.category && (
+                        <span className="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 text-[11px] font-medium">
+                          {s.category}
+                        </span>
+                      )}
+                      {s.dosage && (
+                        <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[11px] font-medium">
+                          💧 {s.dosage}
+                        </span>
+                      )}
+                      {s.frequency && (
+                        <span className="px-2 py-0.5 rounded-md bg-green-500/10 text-green-400 text-[11px] font-medium">
+                          🔁 {s.frequency}
+                        </span>
+                      )}
+                    </div>
+                    {s.notes && <div className="text-[11px] text-muted/70 italic mt-1">{s.notes}</div>}
+                    <AddedByFooter item={s} />
+                  </div>
                 </div>
-                {s.dosage && <div className="text-xs text-muted">{s.dosage}</div>}
-                <Badge color="ok">{t("su_active")}</Badge>
-                <AddedByFooter item={s} />
               </div>
             ))
           )}
