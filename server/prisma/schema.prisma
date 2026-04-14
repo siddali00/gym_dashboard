@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  cf        String?  // Codice Fiscale (optional, like prototype)
+  role      String   @default("cliente") // cliente only for MVP
+  createdAt DateTime @default(now())
+
+  consents       Consent[]
+  selfMetrics    SelfMetric[]
+  foodDays       FoodDay[]
+  medicalReports MedicalReport[]
+  appointments   Appointment[]
+  customFoods    CustomFood[]
+}
+
+model Consent {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  key       String   // privacy, health, sharing, analytics
+  granted   Boolean
+  grantedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, key])
+}
+
+model SelfMetric {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  category String   // corpo, misure, cardio, metabolica, sonno, attivita
+  date     String
+  values   Json     // [{key, value, unit}]
+  bmi      Float?
+  addedAt  DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+}
+
+model FoodDay {
+  id     Int    @id @default(autoincrement())
+  userId Int
+  date   String
+  meals  Json   // [{id, name, time, foods: [{id, name, grams, kcal, pro, cho, fat, fib}]}]
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+model CustomFood {
+  id     Int    @id @default(autoincrement())
+  userId Int
+  name   String
+  cat    String @default("Personalizzato")
+  kcal   Float
+  pro    Float  @default(0)
+  cho    Float  @default(0)
+  fat    Float  @default(0)
+  fib    Float  @default(0)
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model MedicalReport {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  title      String
+  type       String
+  doctor     String?
+  date       String
+  notes      String?
+  fileName   String?
+  filePath   String?
+  uploadedBy String   @default("cliente")
+  addedAt    DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model Appointment {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  title    String
+  date     String
+  time     String
+  location String?
+  notes    String?
+  status   String   @default("confermato")
+  addedAt  DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+}

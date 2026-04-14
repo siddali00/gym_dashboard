@@ -1,0 +1,29 @@
+node_modules/
+dist/
+.env
+*.env.local
+
+# Prisma
+server/prisma/migrations/
+
+# Uploads
+server/uploads/*
+!server/uploads/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+client/dist/
+server/dist/
+
+# Logs
+*.log
+npm-debug.log*
