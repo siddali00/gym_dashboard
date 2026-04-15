@@ -11,7 +11,25 @@ router.get("/my-clients", requireProfessional, async (req: AuthRequest, res: Res
     include: { client: { select: { id: true, name: true, email: true } } },
     orderBy: { addedAt: "desc" },
   });
-  return res.json(links.map((l) => l.client));
+
+  const clients = await Promise.all(
+    links.map(async (l) => {
+      const cId = l.client.id;
+      const [bm, metrics, workouts, nutrition, supplements] = await Promise.all([
+        prisma.biomarker.count({ where: { userId: cId, addedById: req.userId! } }),
+        prisma.selfMetric.count({ where: { userId: cId, addedById: req.userId! } }),
+        prisma.workout.count({ where: { userId: cId, addedById: req.userId! } }),
+        prisma.nutritionPlan.count({ where: { userId: cId, addedById: req.userId! } }),
+        prisma.supplement.count({ where: { userId: cId, addedById: req.userId! } }),
+      ]);
+      return {
+        ...l.client,
+        stats: { bm, metrics, workouts, nutrition, supplements, total: bm + metrics + workouts + nutrition + supplements },
+      };
+    })
+  );
+
+  return res.json(clients);
 });
 
 router.get("/my-professionals", async (req: AuthRequest, res: Response) => {
@@ -32,36 +50,7 @@ router.get("/all-professionals", async (req: AuthRequest, res: Response) => {
   return res.json(pros);
 });
 
-router.get("/all-clients", requireProfessional, async (req: AuthRequest, res: Response) => {
-  const clients = await prisma.user.findMany({
-    where: { role: "cliente" },
-    select: { id: true, name: true, email: true },
-    orderBy: { name: "asc" },
-  });
-  return res.json(clients);
-});
-
-router.post("/", requireProfessional, async (req: AuthRequest, res: Response) => {
-  try {
-    const { clientId } = req.body;
-    if (!clientId) return res.status(400).json({ error: "clientId richiesto" });
-
-    const client = await prisma.user.findFirst({
-      where: { id: Number(clientId), role: "cliente" },
-    });
-    if (!client) return res.status(404).json({ error: "Cliente non trovato" });
-
-    const link = await prisma.profLink.upsert({
-      where: { profId_clientId: { profId: req.userId!, clientId: Number(clientId) } },
-      update: {},
-      create: { profId: req.userId!, clientId: Number(clientId) },
-    });
-    return res.json(link);
-  } catch (e: any) {
-    return res.status(500).json({ error: e.message });
-  }
-});
-
+// Client assigns a professional to themselves
 router.post("/add-professional", async (req: AuthRequest, res: Response) => {
   try {
     const { profId } = req.body;
@@ -83,21 +72,11 @@ router.post("/add-professional", async (req: AuthRequest, res: Response) => {
   }
 });
 
+// Client removes a professional from themselves
 router.delete("/remove-professional/:profId", async (req: AuthRequest, res: Response) => {
   try {
     await prisma.profLink.delete({
       where: { profId_clientId: { profId: Number(req.params.profId), clientId: req.userId! } },
-    });
-    return res.json({ ok: true });
-  } catch (e: any) {
-    return res.status(500).json({ error: e.message });
-  }
-});
-
-router.delete("/:clientId", requireProfessional, async (req: AuthRequest, res: Response) => {
-  try {
-    await prisma.profLink.delete({
-      where: { profId_clientId: { profId: req.userId!, clientId: Number(req.params.clientId) } },
     });
     return res.json({ ok: true });
   } catch (e: any) {

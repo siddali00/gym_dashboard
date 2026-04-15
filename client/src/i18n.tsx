@@ -396,8 +396,8 @@ const messages = {
     prof_kpi_clients: "Clienti",
     prof_kpi_role: "Ruolo",
     prof_gdpr_ok: "GDPR Conforme",
-    prof_no_clients: "Nessun cliente collegato",
-    prof_no_clients_sub: "Collega un cliente per iniziare",
+    prof_no_clients: "Nessun cliente",
+    prof_no_clients_sub: "I clienti ti aggiungeranno dal loro profilo",
 
     // Client selector
     cs_label: "Seleziona Cliente *",
@@ -407,14 +407,12 @@ const messages = {
     // Client list
     cl_title: "I MIEI",
     cl_accent: "CLIENTI",
-    cl_sub: "Gestisci i tuoi clienti collegati.",
-    cl_add_title: "COLLEGA CLIENTE",
-    cl_select_client: "Seleziona un cliente da collegare",
-    cl_link_btn: "COLLEGA",
-    cl_linked: "Cliente collegato",
-    cl_unlink: "Scollega",
-    cl_unlinked: "Cliente scollegato",
-    cl_empty: "Nessun cliente collegato",
+    cl_sub: "I clienti che ti hanno scelto come specialista.",
+    cl_empty: "Nessun cliente",
+    cl_empty_sub: "I clienti ti aggiungeranno dal loro profilo",
+    cl_stat_bm: "BM",
+    cl_stat_metrics: "Mis.",
+    cl_stat_total: "Tot.",
 
     // Entry forms
     ent_bm_title: "INSERISCI",
@@ -888,8 +886,8 @@ const messages = {
     prof_kpi_clients: "Clients",
     prof_kpi_role: "Role",
     prof_gdpr_ok: "GDPR Compliant",
-    prof_no_clients: "No clients linked",
-    prof_no_clients_sub: "Link a client to get started",
+    prof_no_clients: "No clients",
+    prof_no_clients_sub: "Clients will add you from their profile",
 
     cs_label: "Select Client *",
     cs_placeholder: "— Choose a client —",
@@ -897,14 +895,12 @@ const messages = {
 
     cl_title: "MY",
     cl_accent: "CLIENTS",
-    cl_sub: "Manage your linked clients.",
-    cl_add_title: "LINK CLIENT",
-    cl_select_client: "Select a client to link",
-    cl_link_btn: "LINK",
-    cl_linked: "Client linked",
-    cl_unlink: "Unlink",
-    cl_unlinked: "Client unlinked",
-    cl_empty: "No clients linked",
+    cl_sub: "Clients who chose you as their specialist.",
+    cl_empty: "No clients",
+    cl_empty_sub: "Clients will add you from their profile",
+    cl_stat_bm: "BM",
+    cl_stat_metrics: "Mis.",
+    cl_stat_total: "Tot.",
 
     ent_bm_title: "ENTER",
     ent_bm_accent: "BIOMARKERS",
