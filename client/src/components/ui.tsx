@@ -1,9 +1,11 @@
 import {
+  forwardRef,
+} from "react";
+import type {
   InputHTMLAttributes,
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
   ReactNode,
-  forwardRef,
 } from "react";
 
 export const Card = forwardRef<HTMLDivElement, { children: ReactNode; className?: string }>(function Card(

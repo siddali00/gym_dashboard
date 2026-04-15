@@ -1,11 +1,11 @@
 import {
   createContext,
-  ReactNode,
   useCallback,
   useContext,
   useMemo,
   useState,
 } from "react";
+import type { ReactNode } from "react";
 
 export type Locale = "it" | "en";
 
@@ -1038,7 +1038,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<I18nContextType>(() => {
     const t = (key: MessageKey, vars?: Record<string, string>) => {
-      const template = messages[locale][key] ?? messages.it[key];
+      const template: string = messages[locale][key] ?? messages.it[key];
       if (!vars) return template;
       return Object.entries(vars).reduce((acc, [k, v]) => acc.replace(`{{${k}}}`, v), template);
     };
