@@ -1,16 +1,18 @@
 import { Router, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { prisma } from "../index";
-import { signToken, authMiddleware, AuthRequest } from "../middleware/auth";
+import { signToken, authMiddleware, AuthRequest, isValidRole } from "../middleware/auth";
 
 const router = Router();
 
 router.post("/register", async (req: Request, res: Response) => {
   try {
-    const { email, password, name, phone, cf, consents } = req.body;
+    const { email, password, name, phone, cf, consents, role } = req.body;
     if (!email || !password || !name) {
       return res.status(400).json({ error: "Compila tutti i campi obbligatori" });
     }
+
+    const userRole = role && isValidRole(role) ? role : "cliente";
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -19,10 +21,10 @@ router.post("/register", async (req: Request, res: Response) => {
 
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { email, password: hashed, name, phone, cf },
+      data: { email, password: hashed, name, phone, cf, role: userRole },
     });
 
-    if (consents && typeof consents === "object") {
+    if (userRole === "cliente" && consents && typeof consents === "object") {
       for (const [key, granted] of Object.entries(consents)) {
         await prisma.consent.create({
           data: { userId: user.id, key, granted: !!granted },
@@ -30,7 +32,7 @@ router.post("/register", async (req: Request, res: Response) => {
       }
     }
 
-    const token = signToken(user.id);
+    const token = signToken(user.id, user.role);
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "lax",
@@ -54,7 +56,7 @@ router.post("/login", async (req: Request, res: Response) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: "Email o password non corretti" });
 
-    const token = signToken(user.id);
+    const token = signToken(user.id, user.role);
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "lax",

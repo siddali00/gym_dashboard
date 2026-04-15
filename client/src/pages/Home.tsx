@@ -7,25 +7,31 @@ import { useI18n } from "../i18n";
 export function Home({ setPage }: { setPage: (p: string) => void }) {
   const { user } = useAuth();
   const { t } = useI18n();
-  const [counts, setCounts] = useState({ metrics: 0, foodDays: 0, reports: 0, appointments: 0 });
+  const [counts, setCounts] = useState({
+    metrics: 0, foodDays: 0, biomarkers: 0,
+    reports: 0, workouts: 0, specialists: 0,
+  });
 
   useEffect(() => {
     Promise.all([
       api.getMetrics().then((d) => d.length).catch(() => 0),
+      api.getFoodDaysCount().then((d) => d.count).catch(() => 0),
+      api.getBiomarkers().then((d) => d.length).catch(() => 0),
       api.getReports().then((d) => d.length).catch(() => 0),
-      api.getAppointments().then((d) => d.length).catch(() => 0),
-    ]).then(([metrics, reports, appointments]) => {
-      setCounts((c) => ({ ...c, metrics, reports, appointments }));
+      api.getWorkouts().then((d) => d.length).catch(() => 0),
+      api.getMyProfessionals().then((d) => d.length).catch(() => 0),
+    ]).then(([metrics, foodDays, biomarkers, reports, workouts, specialists]) => {
+      setCounts({ metrics, foodDays, biomarkers, reports, workouts, specialists });
     });
   }, []);
 
   const kpis = [
     { icon: "📊", label: t("kpi_metrics"), val: counts.metrics, page: "metrics", color: "text-green" },
-    { icon: "🍽️", label: t("kpi_food"), val: "→", page: "food", color: "text-amber" },
+    { icon: "🍽️", label: t("kpi_days_tracked"), val: counts.foodDays, page: "food", color: "text-amber" },
+    { icon: "🔬", label: t("kpi_biomarkers"), val: counts.biomarkers, page: "biomarkers", color: "text-accent" },
     { icon: "📋", label: t("kpi_reports"), val: counts.reports, page: "referti", color: "text-purple" },
-    { icon: "📅", label: t("kpi_appointments"), val: counts.appointments, page: "appointments", color: "text-blue" },
-    { icon: "🔬", label: t("kpi_biomarkers"), val: "—", page: "biomarkers", color: "text-accent" },
-    { icon: "🏋️", label: t("kpi_workouts"), val: "—", page: "workouts", color: "text-blue" },
+    { icon: "🏋️", label: t("kpi_programs"), val: counts.workouts, page: "workouts", color: "text-blue" },
+    { icon: "👥", label: t("kpi_specialists"), val: counts.specialists, page: "specialists", color: "text-green" },
   ];
 
   return (

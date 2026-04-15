@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Card, FG, Inp, Btn, InfoBox } from "../components/ui";
-import { GDPR_ITEMS } from "../data/constants";
+import { GDPR_ITEMS, ROLE_INFO } from "../data/constants";
 import { useAuth } from "../store";
 import { useI18n, type TKey } from "../i18n";
 
-export function Register({ goLogin }: { goLogin: () => void }) {
+export function Register({ goLogin, role, goBack }: { goLogin: () => void; role: string; goBack: () => void }) {
   const { register } = useAuth();
   const { t } = useI18n();
+  const isClient = role === "cliente";
+  const ri = ROLE_INFO[role];
+  const totalSteps = isClient ? 2 : 1;
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ name: "", email: "", password: "", cf: "", phone: "" });
   const [cons, setCons] = useState<Record<string, boolean>>({});
@@ -20,14 +23,14 @@ export function Register({ goLogin }: { goLogin: () => void }) {
       setErr(t("fill_all_required_error"));
       return;
     }
-    if (!allReq) {
+    if (isClient && !allReq) {
       setErr(t("required_consents_error"));
       return;
     }
     setLoading(true);
     setErr("");
     try {
-      await register({ ...form, consents: cons });
+      await register({ ...form, role, consents: isClient ? cons : undefined });
     } catch (e: any) {
       setErr(e.message);
     } finally {
@@ -40,22 +43,20 @@ export function Register({ goLogin }: { goLogin: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
-      {/* Branding */}
       <div className="text-center mb-9">
         <div className="w-[68px] h-[68px] bg-linear-to-br from-accent to-red-500 rounded-[18px] mx-auto mb-4 flex items-center justify-center text-[30px]">
-          ⚕️
+          {ri?.icon || "⚕️"}
         </div>
         <h1 className="font-bebas text-[46px] tracking-[.06em] leading-none">{t("brand_name")}</h1>
-        <p className="text-muted text-[13px] mt-1">{t("brand_tagline")}</p>
+        <p className="text-muted text-[13px] mt-1">{t("register_portal")} <span className="text-accent font-semibold">{t((ri?.titleKey || "role_client") as TKey)}</span></p>
       </div>
 
       <Card className="w-full max-w-[490px] p-[30px]">
-        {/* Progress bar */}
         <div className="flex gap-1.5 mb-6">
-          {[1, 2].map((x) => (
+          {Array.from({ length: totalSteps }, (_, i) => (
             <div
-              key={x}
-              className={`h-[3px] flex-1 rounded-full transition-all duration-300 ${step >= x ? "bg-accent" : "bg-white/10"}`}
+              key={i}
+              className={`h-[3px] flex-1 rounded-full transition-all duration-300 ${step >= i + 1 ? "bg-accent" : "bg-white/10"}`}
             />
           ))}
         </div>
@@ -67,7 +68,7 @@ export function Register({ goLogin }: { goLogin: () => void }) {
               <Inp value={form.name} onChange={upd("name")} placeholder={t("ph_name")} />
             </FG>
             <FG label={t("email_required")}>
-              <Inp type="email" value={form.email} onChange={upd("email")} placeholder="mario@email.it" />
+              <Inp type="email" value={form.email} onChange={upd("email")} placeholder={t("ph_email")} />
             </FG>
             <FG label={t("password_required")}>
               <Inp type="password" value={form.password} onChange={upd("password")} placeholder={t("password_hint")} />
@@ -85,23 +86,29 @@ export function Register({ goLogin }: { goLogin: () => void }) {
               </FG>
             </div>
             {err && <p className="text-accent text-xs mb-2">{err}</p>}
-            <Btn
-              onClick={() => {
-                if (!form.name || !form.email || !form.password) {
-                  setErr(t("fill_required_error"));
-                  return;
-                }
-                setErr("");
-                setStep(2);
-              }}
-              className="w-full"
-            >
-              {t("continue")}
-            </Btn>
+            {isClient ? (
+              <Btn
+                onClick={() => {
+                  if (!form.name || !form.email || !form.password) {
+                    setErr(t("fill_required_error"));
+                    return;
+                  }
+                  setErr("");
+                  setStep(2);
+                }}
+                className="w-full"
+              >
+                {t("continue")}
+              </Btn>
+            ) : (
+              <Btn onClick={submit} className="w-full" disabled={loading}>
+                {loading ? t("registering") : t("complete_registration")}
+              </Btn>
+            )}
           </>
         )}
 
-        {step === 2 && (
+        {step === 2 && isClient && (
           <>
             <h2 className="font-bebas text-[22px] mb-1 tracking-wide">{t("privacy_consents")}</h2>
             <p className="text-muted text-[11px] mb-4 leading-relaxed">{t("register_privacy_intro")}</p>
@@ -160,6 +167,13 @@ export function Register({ goLogin }: { goLogin: () => void }) {
           </span>
         </p>
       </Card>
+
+      <button
+        onClick={goBack}
+        className="mt-5 text-[12px] text-muted hover:text-accent transition-colors cursor-pointer bg-transparent border-none"
+      >
+        ← {t("landing_back_roles")}
+      </button>
     </div>
   );
 }

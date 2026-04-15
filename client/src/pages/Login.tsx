@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Card, FG, Inp, Btn } from "../components/ui";
 import { useAuth } from "../store";
-import { useI18n } from "../i18n";
+import { useI18n, type TKey } from "../i18n";
+import { ROLE_INFO } from "../data/constants";
 
-export function Login({ goRegister }: { goRegister: () => void }) {
+export function Login({ goRegister, goBack, role }: { goRegister: () => void; goBack: () => void; role: string }) {
   const { login } = useAuth();
   const { t } = useI18n();
+  const ri = ROLE_INFO[role];
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [err, setErr] = useState("");
@@ -25,13 +27,12 @@ export function Login({ goRegister }: { goRegister: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
-      {/* Branding */}
       <div className="text-center mb-9">
         <div className="w-[68px] h-[68px] bg-linear-to-br from-accent to-red-500 rounded-[18px] mx-auto mb-4 flex items-center justify-center text-[30px]">
-          ⚕️
+          {ri?.icon || "⚕️"}
         </div>
         <h1 className="font-bebas text-[46px] tracking-[.06em] leading-none">{t("brand_name")}</h1>
-        <p className="text-muted text-[13px] mt-1">{t("brand_tagline")}</p>
+        <p className="text-muted text-[13px] mt-1">{t("login_portal")} <span className="text-accent font-semibold">{t((ri?.titleKey || "role_client") as TKey)}</span></p>
       </div>
 
       <Card className="w-full max-w-[380px] p-[30px]">
@@ -65,7 +66,14 @@ export function Login({ goRegister }: { goRegister: () => void }) {
         </p>
       </Card>
 
-      <p className="mt-6 text-[11px] text-muted text-center leading-relaxed">{t("auth_footer_gdpr")}</p>
+      <button
+        onClick={goBack}
+        className="mt-5 text-[12px] text-muted hover:text-accent transition-colors cursor-pointer bg-transparent border-none"
+      >
+        ← {t("landing_back_roles")}
+      </button>
+
+      <p className="mt-3 text-[11px] text-muted text-center leading-relaxed">{t("auth_footer_gdpr")}</p>
     </div>
   );
 }

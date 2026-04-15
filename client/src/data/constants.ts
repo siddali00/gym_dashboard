@@ -1,3 +1,11 @@
+export const ROLE_INFO: Record<string, { icon: string; titleKey: string }> = {
+  cliente:         { icon: "🧑‍🦱", titleKey: "role_client" },
+  medico:          { icon: "🩺",   titleKey: "role_doctor" },
+  nutrizionista:   { icon: "🥗",   titleKey: "role_nutritionist" },
+  fabbro:          { icon: "🛠️",   titleKey: "role_blacksmith" },
+  coach_di_ferro:  { icon: "🏋️",   titleKey: "role_iron_coach" },
+};
+
 export const GDPR_ITEMS = [
   { id: "privacy", req: true, label: "Informativa Privacy (Art. 13 GDPR)", text: "Ho letto e accetto l'Informativa Privacy di Salute di Ferro ai sensi del Reg. UE 2016/679 e del D.Lgs. 196/2003 modificato dal D.Lgs. 101/2018." },
   { id: "health", req: true, label: "Trattamento Dati Sanitari (Art. 9 GDPR)", text: "Acconsento esplicitamente al trattamento dei miei dati sanitari ai sensi dell'Art. 9 par. 2 lett. a) GDPR." },
