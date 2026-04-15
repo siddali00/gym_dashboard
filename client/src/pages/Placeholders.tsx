@@ -14,15 +14,7 @@ function AddedByFooter({ item }: { item: any }) {
   );
 }
 
-function Detail({ label, value }: { label: string; value?: string | null }) {
-  if (!value) return null;
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="text-[10px] text-muted uppercase tracking-wider">{label}</span>
-      <span className="text-[12px] font-medium">{value}</span>
-    </div>
-  );
-}
+
 
 /* ─── BIOMARKERS ─── */
 export function Biomarkers() {
